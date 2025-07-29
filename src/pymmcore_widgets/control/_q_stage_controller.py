@@ -45,14 +45,21 @@ class QStageMoveAccumulator(QObject):
                     f"It is a {dev_obj.type().name!r}."
                 )
             accum = dev_obj.getPositionAccumulator()
-            cls._CACHE[key] = QStageMoveAccumulator(accum)
+            cls._CACHE[key] = QStageMoveAccumulator(mmcore, accum)
             weakref.finalize(mmcore, cls._CACHE.pop, key, None)
         return cls._CACHE[key]
 
     _CACHE: ClassVar[dict[tuple[int, str], QStageMoveAccumulator]] = {}
 
-    def __init__(self, accumulator: AbstractChangeAccumulator, *, poll_ms: int = 20):
+    def __init__(
+        self,
+        mmcore: CMMCorePlus,
+        accumulator: AbstractChangeAccumulator,
+        *,
+        poll_ms: int = 20,
+    ):
         super().__init__()
+        self._mmc = mmcore
         self._accum = accumulator
         self._poll_ms = poll_ms
         self._timer_id: int | None = None
@@ -85,9 +92,7 @@ class QStageMoveAccumulator(QObject):
                 self._timer_id = None
 
             if self.snap_on_finish:
-                core = getattr(self._accum, "_mmcore", None)
-                if isinstance(core, CMMCorePlus):
-                    core.snapImage()
+                self._mmc.snapImage()
                 self.snap_on_finish = False
 
             self.moveFinished.emit()
