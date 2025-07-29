@@ -86,8 +86,10 @@ class QStageMoveAccumulator(QObject):
 
             if self.snap_on_finish:
                 core = getattr(self._accum, "_mmcore", None)
-                if isinstance(core, CMMCorePlus):
-                    core.snapImage()
+                # FIXME: Need a is_corelike function
+                # if isinstance(core, CMMCorePlus):
+                #     core.snapImage()
+                core.snapImage()
                 self.snap_on_finish = False
 
             self.moveFinished.emit()
